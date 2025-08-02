@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>بيانات الطلاب</title>
+</head>
+<body>
+  <h1>عرض وإضافة بيانات الطلاب</h1>
+
+  <form id="dataForm">
+    <input type="text" id="name" placeholder="اسم الطالب" required>
+    <input type="number" id="score" placeholder="الدرجة" required>
+    <button type="submit">إضافة</button>
+  </form>
+
+  <hr>
+  <ul id="sheetData"></ul>
+
+  <script>
+    const scriptURL = "https://script.google.com/macros/s/🔥YOUR_WEB_APP_URL🔥/exec";
+
+    // عرض البيانات
+    fetch(scriptURL)
+      .then(res => res.json())
+      .then(data => {
+        const ul = document.getElementById('sheetData');
+        data.forEach(row => {
+          const li = document.createElement('li');
+          li.textContent = row.join(' | ');
+          ul.appendChild(li);
+        });
+      });
+
+    // إضافة بيانات
+    document.getElementById('dataForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const name = document.getElementById('name').value;
+      const score = document.getElementById('score').value;
+
+      const formData = new URLSearchParams();
+      formData.append("name", name);
+      formData.append("score", score);
+
+      fetch(scriptURL, {
+        method: "POST",
+        body: formData
+      })
+      .then(res => res.text())
+      .then(msg => {
+        alert(msg);
+        location.reload(); // لإعادة تحميل البيانات
+      })
+      .catch(err => alert("فشل الإرسال"));
+    });
+  </script>
+</body>
+</html>
