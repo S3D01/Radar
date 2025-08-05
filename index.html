@@ -2,56 +2,106 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>بيانات الطلاب</title>
+  <title>عرض مخالفات الطالب</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      max-width: 500px;
+      margin: auto;
+      padding: 20px;
+      font-family: sans-serif;
+      direction: rtl;
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 12px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+
+    .violation-box {
+      background: #f1f1f1;
+      margin-bottom: 10px;
+      padding: 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .details {
+      display: none;
+      background: #ffffff;
+      margin-top: 10px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+  </style>
 </head>
 <body>
-  <h1>عرض وإضافة بيانات الطلاب</h1>
 
-  <form id="dataForm">
-    <input type="text" id="name" placeholder="اسم الطالب" required>
-    <input type="number" id="score" placeholder="الدرجة" required>
-    <button type="submit">إضافة</button>
-  </form>
+  <h2>عرض مخالفات الطالب</h2>
+  <input type="text" id="searchId" placeholder="أدخل رقم الدخول">
+  <button onclick="search()">عرض النتائج</button>
 
-  <hr>
-  <ul id="sheetData"></ul>
+  <div id="resultsList"></div>
 
   <script>
     const scriptURL = "https://script.google.com/macros/s/AKfycbwXCcCQLT2DNuCyDz6CY2arWYO38XfL9KCJQZQq0w4bzu-q2l6yC8YgsJKsQhNxTxgqUQ/exec";
 
-    // عرض البيانات
-    fetch(scriptURL)
-      .then(res => res.json())
-      .then(data => {
-        const ul = document.getElementById('sheetData');
-        data.forEach(row => {
-          const li = document.createElement('li');
-          li.textContent = row.join(' | ');
-          ul.appendChild(li);
-        });
-      });
+    function search() {
+      const id = document.getElementById('searchId').value.trim();
+      const results = document.getElementById('resultsList');
+      results.innerHTML = "";
 
-    // إضافة بيانات
-    document.getElementById('dataForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const name = document.getElementById('name').value;
-      const score = document.getElementById('score').value;
+      if (!id) {
+        alert("الرجاء إدخال رقم الدخول");
+        return;
+      }
 
-      const formData = new URLSearchParams();
-      formData.append("name", name);
-      formData.append("score", score);
+      fetch(scriptURL)
+        .then(res => res.json())
+        .then(data => {
+          const filtered = data.filter(row => row[1]?.toString().trim() === id);
 
-      fetch(scriptURL, {
-        method: "POST",
-        body: formData
-      })
-      .then(res => res.text())
-      .then(msg => {
-        alert(msg);
-        location.reload(); // لإعادة تحميل البيانات
-      })
-      .catch(err => alert("فشل الإرسال"));
-    });
+          if (filtered.length === 0) {
+            results.innerHTML = '<div style="text-align:center;">لا توجد مخالفات</div>';
+            return;
+          }
+
+          filtered.forEach((row, index) => {
+            const box = document.createElement('div');
+            box.className = 'violation-box';
+            box.innerHTML = `
+              <strong>مخالفة ${index + 1}</strong>
+              <div class="details">
+                رقم المخالفة : ${row[0]}<br>
+                رقم الدخول: ${row[1]}<br>
+                الاسم: ${row[2]}<br>
+                الأسرة: ${row[3]}<br>
+                المخالفة: ${row[4]}<br>
+                العقوبة: ${row[5]}<br>
+                الحالة: ${row[6] || "غير محددة"}
+              </div>
+            `;
+
+            // عند الضغط، إظهار/إخفاء التفاصيل
+            box.addEventListener('click', function () {
+              const details = this.querySelector('.details');
+              details.style.display = details.style.display === 'none' ? 'block' : 'none';
+            });
+
+            results.appendChild(box);
+          });
+        })
+        .catch(() => alert("حدث خطأ أثناء جلب البيانات"));
+    }
   </script>
+
 </body>
 </html>
