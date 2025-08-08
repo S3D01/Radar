@@ -11,10 +11,12 @@
       padding: 20px;
       font-family: sans-serif;
       direction: rtl;
+      background-color: #655347;
     }
 
     h2 {
       text-align: center;
+      color: #ffffff;
     }
 
     input, button {
@@ -24,9 +26,13 @@
       font-size: 16px;
       box-sizing: border-box;
     }
+    button{
+      background-color: #E1C699;
+    }
+    
 
     .violation-box {
-      background: #f1f1f1;
+      background: #C4A484;
       margin-bottom: 10px;
       padding: 12px;
       border-radius: 6px;
@@ -35,19 +41,33 @@
 
     .details {
       display: none;
-      background: #ffffff;
+      background: #E1C699;
       margin-top: 10px;
       padding: 10px;
       border: 1px solid #ccc;
       border-radius: 6px;
     }
+
+    #loading {
+      display: none;
+      text-align: center;
+      margin: 10px 0;
+      font-size: 16px;
+      color: #ffffff;
+    }
   </style>
 </head>
 <body>
 
-  <h2>عرض مخالفات الطالب</h2>
+  <div style="text-align:center; margin-bottom: 15px;">
+    <img src="Logo.png" alt="شعار" style="max-width: 500px; border-radius: 8px;">
+  </div>
+
+
+  <h2>عرض مخالفات المشارك</h2>
   <input type="text" id="searchId" placeholder="أدخل رقم الدخول">
-  <button onclick="search()">عرض النتائج</button>
+  <button id="searchBtn" onclick="search()">عرض النتائج</button>
+  <div id="loading">⏳ جاري التحميل...</div>
 
   <div id="resultsList"></div>
 
@@ -57,12 +77,19 @@
     function search() {
       const id = document.getElementById('searchId').value.trim();
       const results = document.getElementById('resultsList');
+      const btn = document.getElementById('searchBtn');
+      const loading = document.getElementById('loading');
+
       results.innerHTML = "";
 
       if (!id) {
         alert("الرجاء إدخال رقم الدخول");
         return;
       }
+
+      // إخفاء الزر وإظهار اللودينق
+      btn.style.display = "none";
+      loading.style.display = "block";
 
       fetch(scriptURL)
         .then(res => res.json())
@@ -71,35 +98,35 @@
 
           if (filtered.length === 0) {
             results.innerHTML = '<div style="text-align:center;">لا توجد مخالفات</div>';
-            return;
-          }
-
-          filtered.forEach((row, index) => {
-            const box = document.createElement('div');
-            box.className = 'violation-box';
-            box.innerHTML = `
-              <strong>مخالفة ${index + 1}</strong>
-              <div class="details">
-                رقم المخالفة : ${row[0]}<br>
-                رقم الدخول: ${row[1]}<br>
-                الاسم: ${row[2]}<br>
-                الأسرة: ${row[3]}<br>
-                المخالفة: ${row[4]}<br>
-                العقوبة: ${row[5]}<br>
-                الحالة: ${row[6] || "غير محددة"}
-              </div>
-            `;
-
-            // عند الضغط، إظهار/إخفاء التفاصيل
-            box.addEventListener('click', function () {
-              const details = this.querySelector('.details');
-              details.style.display = details.style.display === 'none' ? 'block' : 'none';
+          } else {
+            filtered.forEach((row, index) => {
+              const box = document.createElement('div');
+              box.className = 'violation-box';
+              box.innerHTML = `
+                <strong>مخالفة ${index + 1}</strong>
+                <div class="details">
+                  رقم المخالفة : ${row[0]}<br>
+                  رقم الدخول: ${row[1]}<br>
+                  الاسم: ${row[2]}<br>
+                  الأسرة: ${row[3]}<br>
+                  المخالفة: ${row[4]}<br>
+                  العقوبة: ${row[5]}<br>
+                  الحالة: ${row[6] || "غير محددة"}
+                </div>
+              `;
+              box.addEventListener('click', function () {
+                const details = this.querySelector('.details');
+                details.style.display = details.style.display === 'none' ? 'block' : 'none';
+              });
+              results.appendChild(box);
             });
-
-            results.appendChild(box);
-          });
+          }
         })
-        .catch(() => alert("حدث خطأ أثناء جلب البيانات"));
+        .catch(() => alert("حدث خطأ أثناء جلب البيانات"))
+        .finally(() => {
+          // إخفاء اللودينق وإظهار النتيجة
+          loading.style.display = "none";
+        });
     }
   </script>
 
