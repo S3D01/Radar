@@ -100,6 +100,7 @@
             results.innerHTML = '<div style="text-align:center;">لا توجد مخالفات</div>';
           } else {
             filtered.forEach((row, index) => {
+              const imageUrl = row[7] ? `<img src="${row[7]}" alt="صورة المخالفة">` : "";
               const box = document.createElement('div');
               box.className = 'violation-box';
               box.innerHTML = `
@@ -110,10 +111,10 @@
                   الاسم: ${row[2]}<br>
                   الأسرة: ${row[3]}<br>
                   المخالفة: ${row[4]}<br>
-                  العقوبة: ${row[5]}<br>
-                  
-              الحالة: ${row[6] || "غير محددة"}
-                </div>
+                  العقوبة: ${row[5]}<br> 
+          الحالة: ${row[6] || "غير محددة"}
+                ${imageUrl}
+                 </div>
               `;
               box.addEventListener('click', function () {
                 const details = this.querySelector('.details');
